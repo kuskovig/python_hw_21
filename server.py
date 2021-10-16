@@ -16,7 +16,9 @@ with socket.socket() as s:
     s.listen()
     connection, address = s.accept()
 
+
     with connection:
+        connection.send("Hello, I am server!".encode("utf-8"))
         while connection:
             try:
                 data = connection.recv(1024)
@@ -41,11 +43,19 @@ with socket.socket() as s:
                     response_status = "200 OK"
             except AttributeError:
                 response_status = "200 OK"
-            headers = "\n".join([i for i in data_list[1:data_list.index("")]])
 
+            '''
+            Getting headers from data_list. Since 1st item is method, we slicing [1:], and since body is separated
+             with empty line  we slice by index of this ""[:data_list.index("")] ==> [1:data_list.index("")]
+            '''
+            try:
+                headers = "\n".join([i for i in data_list[1:data_list.index("")]])
+            except ValueError:
+                headers = "Cannot read headers. Probably there are none"
             connection.send(f"HTTP/1.1 {response_status}\n{headers}\n\n"
                             f"<p>Request Method:</p><pre>{request_method}</pre>"
                             f"<p>Request Source:<p><pre>{address}</pre>"
                             f"<p>Response Status:</p><pre>{response_status}</pre>"
                             f"<p>Headers:</p><pre>{headers}</pre>".encode("utf-8"))
-            connection.close()
+
+
